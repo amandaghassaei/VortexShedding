@@ -176,7 +176,7 @@ function resetWindow(){
     for (var i=0;i<height;i++){
         for (var j=0;j<width;j++){
             var index = 4*(i*width+j);
-            if (j<100) velocity[index] = 1;
+            velocity[index] = 1;
         }
     }
     GPU.initTextureFromData("velocity", width, height, "FLOAT", velocity, true);
@@ -195,8 +195,7 @@ function resetWindow(){
     for (var i=0;i<actualHeight;i++){
         for (var j=0;j<actualWidth;j++){
             var index = 4*(i*actualWidth+j);
-            if (((Math.floor(i/50))%2 && (Math.floor(j/50))%2)
-                || ((Math.floor(i/50))%2 == 0 && (Math.floor(j/50))%2 == 0)) material[index] = 1.0;
+            if ((Math.floor(i/10))%2) material[index] = 1.0;
         }
     }
     GPU.initTextureFromData("material", actualWidth, actualHeight, "FLOAT", material, true);
