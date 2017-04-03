@@ -40,10 +40,15 @@ function initGL() {
     GPU = initGPUMath();
 
     // setup a GLSL programs
-    GPU.createProgram("advect", "2d-vertex-shader", "advectShader");
-    GPU.setUniformForProgram("advect", "u_dt", dt, "1f");
-    GPU.setUniformForProgram("advect", "u_velocity", 0, "1i");
-    GPU.setUniformForProgram("advect", "u_material", 1, "1i");
+    GPU.createProgram("advectVel", "2d-vertex-shader", "advectShaderVel");
+    GPU.setUniformForProgram("advectVel", "u_dt", dt, "1f");
+    GPU.setUniformForProgram("advectVel", "u_velocity", 0, "1i");
+    GPU.setUniformForProgram("advectVel", "u_material", 1, "1i");
+
+    GPU.createProgram("advectMat", "2d-vertex-shader", "advectShaderMat");
+    GPU.setUniformForProgram("advectMat", "u_dt", dt, "1f");
+    GPU.setUniformForProgram("advectMat", "u_velocity", 0, "1i");
+    GPU.setUniformForProgram("advectMat", "u_material", 1, "1i");
 
     GPU.createProgram("gradientSubtraction", "2d-vertex-shader", "gradientSubtractionShader");
     GPU.setUniformForProgram("gradientSubtraction", "u_const", 0.5/dx, "1f");//dt/(2*rho*dx)
@@ -76,10 +81,7 @@ function render(){
 
         // //advect velocity
         GPU.setSize(width, height);
-        GPU.setProgram("advect");
-        GPU.setUniformForProgram("advect" ,"u_textureSize", [width, height], "2f");
-        GPU.setUniformForProgram("advect" ,"u_scale", 1, "1f");
-        GPU.step("advect", ["velocity", "velocity"], "nextVelocity");
+        GPU.step("advectVel", ["velocity", "velocity"], "nextVelocity");
         GPU.swapTextures("velocity", "nextVelocity");
 
         //diffuse velocity
@@ -121,10 +123,7 @@ function render(){
 
         // move material
         GPU.setSize(actualWidth, actualHeight);
-        GPU.setProgram("advect");
-        GPU.setUniformForProgram("advect" ,"u_textureSize", [actualWidth, actualHeight], "2f");
-        GPU.setUniformForProgram("advect" ,"u_scale", scale, "1f");
-        GPU.step("advect", ["velocity", "material"], "nextMaterial");
+        GPU.step("advectMat", ["velocity", "material"], "nextMaterial");
         GPU.step("render", ["nextMaterial"]);
         GPU.swapTextures("nextMaterial", "material");
 
@@ -155,6 +154,12 @@ function resetWindow(){
 
     // GPU.setSize(width, height);
 
+    GPU.setProgram("advectVel");
+    GPU.setUniformForProgram("advectVel" ,"u_textureSize", [width, height], "2f");
+    GPU.setUniformForProgram("advectVel" ,"u_scale", 1, "1f");
+    GPU.setProgram("advectMat");
+    GPU.setUniformForProgram("advectMat" ,"u_textureSize", [actualWidth, actualHeight], "2f");
+    GPU.setUniformForProgram("advectMat" ,"u_scale", scale, "1f");
     GPU.setProgram("gradientSubtraction");
     GPU.setUniformForProgram("gradientSubtraction" ,"u_textureSize", [width, height], "2f");
     GPU.setProgram("diverge");
@@ -168,16 +173,15 @@ function resetWindow(){
     GPU.setUniformForProgram("render" ,"u_textureSize", [actualWidth, actualHeight], "2f");
 
     var velocity = new Float32Array(width*height*4);
-    // for (var i=0;i<height;i++){
-    //     for (var j=0;j<width;j++){
-    //         var index = 4*(i*width+j);
-    //         velocity[index] = Math.sin(2*Math.PI*i/200)/10;
-    //         velocity[index+1] = Math.sin(2*Math.PI*j/200)/10;
-    //     }
-    // }
+    for (var i=0;i<height;i++){
+        for (var j=0;j<width;j++){
+            var index = 4*(i*width+j);
+            if (j<100) velocity[index] = 1;
+        }
+    }
     GPU.initTextureFromData("velocity", width, height, "FLOAT", velocity, true);
     GPU.initFrameBufferForTexture("velocity", true);
-    GPU.initTextureFromData("nextVelocity", width, height, "FLOAT", new Float32Array(width*height*4), true);
+    GPU.initTextureFromData("nextVelocity", width, height, "FLOAT", velocity, true);
     GPU.initFrameBufferForTexture("nextVelocity", true);
 
     GPU.initTextureFromData("velocityDivergence", width, height, "FLOAT", new Float32Array(width*height*4), true);
