@@ -93,8 +93,8 @@
 
             float n = texture2D(u_pressure, repeatBoundary(fragCoord+vec2(0.0, 1.0))/u_textureSize).x;
             float s = texture2D(u_pressure, repeatBoundary(fragCoord+vec2(0.0, -1.0))/u_textureSize).x;
-            float e = texture2D(u_pressure, repeatBoundary(fragCoord+vec2(1.0, 0.0))/u_textureSize).x;
-            float w = texture2D(u_pressure, repeatBoundary(fragCoord+vec2(-1.0, 0.0))/u_textureSize).x;
+            float e = texture2D(u_pressure, (fragCoord+vec2(1.0, 0.0))/u_textureSize).x;
+            float w = texture2D(u_pressure, (fragCoord+vec2(-1.0, 0.0))/u_textureSize).x;
 
             gl_FragColor = vec4(currentVelocity-u_const*vec2(e-w, n-s), 0, 0);
         }
@@ -130,8 +130,8 @@
             float n = texture2D(u_velocity, repeatBoundary(fragCoord+vec2(0.0, 1.0))/u_textureSize).y;
             float s = texture2D(u_velocity, repeatBoundary(fragCoord+vec2(0.0, -1.0))/u_textureSize).y;
 
-            float e = texture2D(u_velocity, repeatBoundary(fragCoord+vec2(1.0, 0.0))/u_textureSize).x;
-            float w = texture2D(u_velocity, repeatBoundary(fragCoord+vec2(-1.0, 0.0))/u_textureSize).x;
+            float e = texture2D(u_velocity, (fragCoord+vec2(1.0, 0.0))/u_textureSize).x;
+            float w = texture2D(u_velocity, (fragCoord+vec2(-1.0, 0.0))/u_textureSize).x;
 
             float div = u_const*(e-w + n-s);
             gl_FragColor = vec4(div, 0, 0, 0);
