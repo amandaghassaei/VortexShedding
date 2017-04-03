@@ -178,7 +178,7 @@ function resetWindow(){
     GPU.setUniformForProgram("advectVel" ,"u_scale", 1, "1f");
     GPU.setProgram("advectMat");
     GPU.setUniformForProgram("advectMat" ,"u_textureSize", [actualWidth, actualHeight], "2f");
-    GPU.setUniformForProgram("advectMat" ,"u_scale", scale, "1f");
+    GPU.setUniformForProgram("advectMat" ,"u_scale", width/actualWidth, "1f");
     GPU.setProgram("gradientSubtraction");
     GPU.setUniformForProgram("gradientSubtraction" ,"u_textureSize", [width, height], "2f");
     GPU.setProgram("diverge");
