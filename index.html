@@ -30,7 +30,7 @@
         void main() {
             vec2 fragCoord = gl_FragCoord.xy;
 
-            vec2 dir = fragCoord - vec2(0.5, 0.5) - u_obstaclePosition;
+            vec2 dir = fragCoord - 3.0*vec2(0.5, 0.5) - u_obstaclePosition;//not sure where this fac of 3 came from?
             float dist = length(dir);
             if (dist < u_obstacleRad){
                 gl_FragColor = vec4(0);
