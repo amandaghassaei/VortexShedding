@@ -195,7 +195,7 @@ function resetWindow(){
     for (var i=0;i<actualHeight;i++){
         for (var j=0;j<actualWidth;j++){
             var index = 4*(i*actualWidth+j);
-            if ((Math.floor(i/10))%2) material[index] = 1.0;
+            if (j==0 && (Math.floor(i/10))%2) material[index] = 1.0;
         }
     }
     GPU.initTextureFromData("material", actualWidth, actualHeight, "FLOAT", material, true);
