@@ -192,7 +192,7 @@ function resetWindow(){
     GPU.setUniformForProgram("render" ,"u_textureSize", [actualWidth, actualHeight], "2f");
     GPU.setProgram("boundary");
     GPU.setUniformForProgram("boundary" ,"u_textureSize", [width, height], "2f");
-    GPU.setUniformForProgram("boundary" ,"u_obstaclePosition", [obstaclePosition[0]*width/actualWidth, obstaclePosition[1]*height/actualHeight, "2f");
+    GPU.setUniformForProgram("boundary" ,"u_obstaclePosition", [obstaclePosition[0]*width/actualWidth, obstaclePosition[1]*height/actualHeight], "2f");
     GPU.setUniformForProgram("boundary" ,"u_obstacleRad", obstacleRad*width/actualWidth, "1f");
 
     var velocity = new Float32Array(width*height*4);

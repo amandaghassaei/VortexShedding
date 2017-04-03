@@ -130,7 +130,7 @@
             float n = texture2D(u_velocity, repeatBoundary(fragCoord+vec2(0.0, 1.0))/u_textureSize).y;
             float s = texture2D(u_velocity, repeatBoundary(fragCoord+vec2(0.0, -1.0))/u_textureSize).y;
 
-            float e = texture2D(u_velocity, (fragCoord+vec2(1.0, 0.0))/u_textureSize).x;
+            float e = texture2D(u_velocity, repeatBoundary(fragCoord+vec2(1.0, 0.0))/u_textureSize).x;
             float w = texture2D(u_velocity, (fragCoord+vec2(-1.0, 0.0))/u_textureSize).x;
 
             float div = u_const*(e-w + n-s);
@@ -292,8 +292,9 @@
             }
             if (pos.x >= u_textureSize.x-1.0) {
                 gl_FragColor = vec4(0, 0, 0, 0);
-                return;
+                //return;
             }
+            if (pos.x >= u_textureSize.x-1.0) pos.x -= u_textureSize.x-1.0;
 
             //periodic boundary in y
             if (pos.y < 0.0) {
