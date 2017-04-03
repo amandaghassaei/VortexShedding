@@ -77,8 +77,8 @@
 
         vec2 repeatBoundary(vec2 coord){
             coord -= vec2(0.5, 0.5);
-            if (coord.x < 0.0) coord.x = u_textureSize.x-1.0;
-            else if (coord.x >= u_textureSize.x-1.0) coord.x = 0.0;
+            //if (coord.x < 0.0) coord.x = u_textureSize.x-1.0;
+            if (coord.x >= u_textureSize.x-1.0) coord.x = 0.0;
             if (coord.y < 0.0) coord.y = u_textureSize.y-1.0;
             else if (coord.y >= u_textureSize.y-1.0) coord.y = 0.0;
             coord += vec2(0.5, 0.5);
@@ -251,10 +251,6 @@
 
             vec2 pos = fragCoord - pxCenter - u_dt*currentVelocity;
 
-            if (pos.x < 0.0) {
-               gl_FragColor = vec4(texture2D(u_material, vec2(0,pos.y)/u_textureSize).xy, 0, 0);
-               return;
-            }
             if (pos.x >= u_textureSize.x-1.0) {
                 gl_FragColor = vec4(0, 0, 0, 0);
                 return;
