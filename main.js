@@ -5,6 +5,9 @@ var actualWidth, actualHeight;
 var body;
 var scale = 3.5;
 
+var obstaclePosition = [0,0];
+var obstacleRad = 20;
+
 var lastMouseCoordinates =  [0,0];
 var mouseCoordinates =  [0,0];
 var mouseEnable = false;
@@ -69,6 +72,7 @@ function initGL() {
 
     GPU.createProgram("render", "2d-vertex-shader", "2d-render-shader");
     GPU.setUniformForProgram("render", "u_material", 0, "1i");
+    GPU.setUniformForProgram("render", "u_obstacle", 1, "1i");
 
     resetWindow();
 
@@ -124,7 +128,7 @@ function render(){
         // move material
         GPU.setSize(actualWidth, actualHeight);
         GPU.step("advectMat", ["velocity", "material"], "nextMaterial");
-        GPU.step("render", ["nextMaterial"]);
+        GPU.step("render", ["nextMaterial", "obstacle"]);
         GPU.swapTextures("nextMaterial", "material");
 
     } else resetWindow();
@@ -202,6 +206,20 @@ function resetWindow(){
     GPU.initFrameBufferForTexture("material", true);
     GPU.initTextureFromData("nextMaterial", actualWidth, actualHeight, "FLOAT", material, true);
     GPU.initFrameBufferForTexture("nextMaterial", true);
+
+
+    obstaclePosition = [actualWidth/10, actualHeight/2];
+    var obstacle = new Float32Array(actualWidth*actualHeight*4);
+    for (var i=0;i<actualHeight;i++){
+        for (var j=0;j<actualWidth;j++){
+            var index = 4*(i*actualWidth+j);
+            var vec = [obstaclePosition[0]-j, obstaclePosition[1]-i];
+            if (vec[0]*vec[0]+vec[1]*vec[1] < obstacleRad*obstacleRad){
+                obstacle[index] = 1;
+            }
+        }
+    }
+    GPU.initTextureFromData("obstacle", actualWidth, actualHeight, "FLOAT", obstacle, true);
 
     paused = false;
 }

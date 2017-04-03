@@ -21,10 +21,16 @@
         precision mediump float;
 
         uniform sampler2D u_material;
+        uniform sampler2D u_obstacle;
         uniform vec2 u_textureSize;
 
         void main() {
             vec2 fragCoord = gl_FragCoord.xy;
+            if (texture2D(u_obstacle, fragCoord/u_textureSize).x == 1.0){
+                float color = 0.5;
+                gl_FragColor = vec4(color, color, color, 1);
+                return;
+            }
             float mat1 = texture2D(u_material, fragCoord/u_textureSize).x;
             gl_FragColor = vec4(mat1, mat1, mat1, 1);
         }
