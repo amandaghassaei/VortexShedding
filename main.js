@@ -36,7 +36,7 @@ function initGL() {
     canvas.onmousemove = onMouseMove;
     canvas.onmousedown = onMouseDown;
     canvas.onmouseup = onMouseUp;
-    canvas.onmouseout = onMouseUp;
+    // canvas.onmouseout = onMouseUp;
 
     window.onresize = onResize;
 
