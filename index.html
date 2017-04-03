@@ -343,13 +343,21 @@
             <div class="modal-body">
                 <b>Vortex Shedding Fluid Simulation</b><br/><br/>
                 This simulation solves the <a href="https://en.wikipedia.org/wiki/Navier%E2%80%93Stokes_equations" target="_blank">Navier-Stokes equations</a> for incompressible fluid flow past an obstacle.
-                The velocity of the fluid is solved in a GPU fragment shader 
-                I used the following sources to write this simulation:<br/><br/>
+                At each step of the simulation, a discrete form of Navier-Stokes is solved in a GPU fragment shader.
+                This system exhibits a phenomenon called <a href="https://en.wikipedia.org/wiki/Vortex_shedding" target="_blank">vortex shedding</a>,
+                where vortices of alternating directions spontaneously emerge behind the obstacle.
+                To increase performance, I solved for the velocity of the fluid at a lower resolution than the position of material moving in the fluid (shown in black and white).
+                I used bilinear interpolation to smooth out any resulting artifacts from this speedup.
+                <br/><br/>
+                Click and drag to apply a force to the fluid.
+                <br/><br/>
+                To learn more about the math involved, check out the following sources:<br/>
                 <a href="http://http.developer.nvidia.com/GPUGems/gpugems_ch38.html" target="_blank">Fast Fluid Dynamics Simulation on the GPU</a> - a very well written tutorial about programming the Navier-Stokes equations on a GPU.
                 Though not WebGL specific, it was still very useful.<br/>
+                <a href="http://jamie-wong.com/2016/08/05/webgl-fluid-simulation/" target="_blank">Fluid Simulation (with WebGL demo)</a> - this article has some nice, interactive graphics that helped me debug my code.<br/>
                 <a href="http://www.dgp.toronto.edu/people/stam/reality/Research/pdf/ns.pdf" target="_blank">Stable Fluids</a> - a paper about stable numerical methods for evaluating Navier-Stokes on a discrete grid.<br/>
                 <br/>
-                By <a href="http://www.amandaghassaei.com/" target="_blank">Amanda Ghassaei</a>, code on <a href="https://github.com/amandaghassaei/FluidSimulation" target="_blank">Github</a>.
+                Written by <a href="http://www.amandaghassaei.com/" target="_blank">Amanda Ghassaei</a> as a homework assingment for <a href="http://fab.cba.mit.edu/classes/MAS.864/" target="_blank">The Nature of Mathematical Modeling</a>, code on <a href="https://github.com/amandaghassaei/VortexShedding" target="_blank">Github</a>.
                 <br/><br/>
             </div>
         </div>
