@@ -17,6 +17,35 @@
         }
     </script>
 
+    <script id="boundaryConditionsShader" type="x-shader/x-fragment">
+        precision mediump float;
+
+        uniform sampler2D u_texture;
+        uniform float u_scale;
+        uniform vec2 u_textureSize;
+
+        uniform vec2 u_obstaclePosition;//scaled to texture size
+        uniform float u_obstacleRad;
+
+        void main() {
+            vec2 fragCoord = gl_FragCoord.xy;
+
+            vec2 dir = fragCoord - vec2(0.5, 0.5) - u_obstaclePosition;
+            float dist = length(dir);
+            if (dist < u_obstacleRad-2.0){
+                gl_FragColor = vec4(0);
+                return;
+            }
+
+            if (dist < u_obstacleRad){
+                gl_FragColor = u_scale*texture2D(u_texture, (fragCoord + dir/dist)/u_textureSize);
+                return;
+            }
+
+            gl_FragColor = texture2D(u_texture, fragCoord/u_textureSize);
+        }
+    </script>
+
     <script id="2d-render-shader" type="x-shader/x-fragment">
         precision mediump float;
 
@@ -28,7 +57,7 @@
             vec2 fragCoord = gl_FragCoord.xy;
             if (texture2D(u_obstacle, fragCoord/u_textureSize).x == 1.0){
                 float color = 0.5;
-                gl_FragColor = vec4(color, color, color, 1);
+                gl_FragColor = vec4(0.925, 0, 0.55, 1);
                 return;
             }
             float mat1 = texture2D(u_material, fragCoord/u_textureSize).x;
@@ -46,16 +75,26 @@
 
         uniform float u_const;
 
+        vec2 repeatBoundary(vec2 coord){
+            coord -= vec2(0.5, 0.5);
+            if (coord.x < 0.0) coord.x = u_textureSize.x-1.0;
+            else if (coord.x >= u_textureSize.x-1.0) coord.x = 0.0;
+            if (coord.y < 0.0) coord.y = u_textureSize.y-1.0;
+            else if (coord.y >= u_textureSize.y-1.0) coord.y = 0.0;
+            coord += vec2(0.5, 0.5);
+            return coord;
+        }
+
         void main() {
 
             vec2 fragCoord = gl_FragCoord.xy;
 
             vec2 currentVelocity = texture2D(u_velocity, fragCoord/u_textureSize).xy;
 
-            float n = texture2D(u_pressure, (fragCoord+vec2(0.0, 1.0))/u_textureSize).x;
-            float s = texture2D(u_pressure, (fragCoord+vec2(0.0, -1.0))/u_textureSize).x;
-            float e = texture2D(u_pressure, (fragCoord+vec2(1.0, 0.0))/u_textureSize).x;
-            float w = texture2D(u_pressure, (fragCoord+vec2(-1.0, 0.0))/u_textureSize).x;
+            float n = texture2D(u_pressure, repeatBoundary(fragCoord+vec2(0.0, 1.0))/u_textureSize).x;
+            float s = texture2D(u_pressure, repeatBoundary(fragCoord+vec2(0.0, -1.0))/u_textureSize).x;
+            float e = texture2D(u_pressure, repeatBoundary(fragCoord+vec2(1.0, 0.0))/u_textureSize).x;
+            float w = texture2D(u_pressure, repeatBoundary(fragCoord+vec2(-1.0, 0.0))/u_textureSize).x;
 
             gl_FragColor = vec4(currentVelocity-u_const*vec2(e-w, n-s), 0, 0);
         }
@@ -70,16 +109,29 @@
 
         uniform float u_const;
 
+        vec2 repeatBoundary(vec2 coord){
+            coord -= vec2(0.5, 0.5);
+            if (coord.x < 0.0) coord.x = u_textureSize.x-1.0;
+            else if (coord.x >= u_textureSize.x-1.0) coord.x = 0.0;
+            if (coord.y < 0.0) coord.y = u_textureSize.y-1.0;
+            else if (coord.y >= u_textureSize.y-1.0) coord.y = 0.0;
+            coord += vec2(0.5, 0.5);
+            return coord;
+        }
+
         void main() {
 
             vec2 fragCoord = gl_FragCoord.xy;
 
             //finite difference formulation of divergence
 
-            float n = texture2D(u_velocity, (fragCoord+vec2(0.0, 1.0))/u_textureSize).y;
-            float s = texture2D(u_velocity, (fragCoord+vec2(0.0, -1.0))/u_textureSize).y;
-            float e = texture2D(u_velocity, (fragCoord+vec2(1.0, 0.0))/u_textureSize).x;
-            float w = texture2D(u_velocity, (fragCoord+vec2(-1.0, 0.0))/u_textureSize).x;
+            //periodic boundary
+
+            float n = texture2D(u_velocity, repeatBoundary(fragCoord+vec2(0.0, 1.0))/u_textureSize).y;
+            float s = texture2D(u_velocity, repeatBoundary(fragCoord+vec2(0.0, -1.0))/u_textureSize).y;
+
+            float e = texture2D(u_velocity, repeatBoundary(fragCoord+vec2(1.0, 0.0))/u_textureSize).x;
+            float w = texture2D(u_velocity, repeatBoundary(fragCoord+vec2(-1.0, 0.0))/u_textureSize).x;
 
             float div = u_const*(e-w + n-s);
             gl_FragColor = vec4(div, 0, 0, 0);
@@ -244,10 +296,12 @@
             }
 
             //periodic boundary in y
-            if (pos.x < 0.0) pos.x += u_textureSize.x-1.0;
-            if (pos.x >= u_textureSize.x-1.0) pos.x -= u_textureSize.x-1.0;
-            if (pos.y < 0.0) pos.y += u_textureSize.y-1.0;
-            if (pos.y >= u_textureSize.y-1.0) pos.y -= u_textureSize.y-1.0;
+            if (pos.y < 0.0) {
+                pos.y += u_textureSize.y-1.0;
+            }
+            if (pos.y >= u_textureSize.y-1.0) {
+                pos.y -= u_textureSize.y-1.0;
+            }
 
             //bilinear interp between nearest cells
             vec2 ceiled = ceil(pos);

@@ -74,6 +74,9 @@ function initGL() {
     GPU.setUniformForProgram("render", "u_material", 0, "1i");
     GPU.setUniformForProgram("render", "u_obstacle", 1, "1i");
 
+    GPU.createProgram("boundary", "2d-vertex-shader", "boundaryConditionsShader");
+    GPU.setUniformForProgram("boundary", "u_texture", 0, "1i");
+
     resetWindow();
 
     render();
@@ -86,17 +89,19 @@ function render(){
         // //advect velocity
         GPU.setSize(width, height);
         GPU.step("advectVel", ["velocity", "velocity"], "nextVelocity");
-        GPU.swapTextures("velocity", "nextVelocity");
+        GPU.setProgram("boundary");
+        GPU.setUniformForProgram("boundary", "u_scale", -1, "1f");
+        GPU.step("boundary", ["nextVelocity"], "velocity");
 
-        //diffuse velocity
-        GPU.setProgram("jacobi");
-        var alpha = dx*dx/(nu*dt);
-        GPU.setUniformForProgram("jacobi", "u_alpha", alpha, "1f");
-        GPU.setUniformForProgram("jacobi", "u_reciprocalBeta", 1/(4+alpha), "1f");
-        for (var i=0;i<2;i++){
-            GPU.step("jacobi", ["velocity", "velocity"], "nextVelocity");
-            GPU.step("jacobi", ["nextVelocity", "nextVelocity"], "velocity");
-        }
+        // diffuse velocity
+        // GPU.setProgram("jacobi");
+        // var alpha = dx*dx/(nu*dt);
+        // GPU.setUniformForProgram("jacobi", "u_alpha", alpha, "1f");
+        // GPU.setUniformForProgram("jacobi", "u_reciprocalBeta", 1/(4+alpha), "1f");
+        // for (var i=0;i<1;i++){
+        //     GPU.step("jacobi", ["velocity", "velocity"], "nextVelocity");
+        //     GPU.step("jacobi", ["nextVelocity", "nextVelocity"], "velocity");
+        // }
 
         //apply force
         GPU.setProgram("force");
@@ -109,7 +114,9 @@ function render(){
             GPU.setUniformForProgram("force", "u_mouseEnable", 0.0, "1f");
         }
         GPU.step("force", ["velocity"], "nextVelocity");
-        GPU.swapTextures("velocity", "nextVelocity");
+        GPU.setProgram("boundary");
+        GPU.setUniformForProgram("boundary", "u_scale", -1, "1f");
+        GPU.step("boundary", ["nextVelocity"], "velocity");
 
         // compute pressure
         GPU.step("diverge", ["velocity"], "velocityDivergence");//calc velocity divergence
@@ -120,10 +127,16 @@ function render(){
             GPU.step("jacobi", ["velocityDivergence", "pressure"], "nextPressure");//diffuse velocity
             GPU.step("jacobi", ["velocityDivergence", "nextPressure"], "pressure");//diffuse velocity
         }
+        GPU.setProgram("boundary");
+        GPU.setUniformForProgram("boundary", "u_scale", 1, "1f");
+        GPU.step("boundary", ["pressure"], "nextPressure");
+        GPU.swapTextures("nextPressure", "pressure");
 
         // subtract pressure gradient
         GPU.step("gradientSubtraction", ["velocity", "pressure"], "nextVelocity");
-        GPU.swapTextures("velocity", "nextVelocity");
+        GPU.setProgram("boundary");
+        GPU.setUniformForProgram("boundary", "u_scale", -1, "1f");
+        GPU.step("boundary", ["nextVelocity"], "velocity");
 
         // move material
         GPU.setSize(actualWidth, actualHeight);
@@ -151,6 +164,8 @@ function resetWindow(){
     width = Math.floor(actualWidth/scale);
     height = Math.floor(actualHeight/scale);
 
+    obstaclePosition = [actualWidth/10, actualHeight/2];
+
     canvas.width = actualWidth;
     canvas.height = actualHeight;
     canvas.clientWidth = body.clientWidth;
@@ -175,6 +190,10 @@ function resetWindow(){
     GPU.setUniformForProgram("jacobi" ,"u_textureSize", [width, height], "2f");
     GPU.setProgram("render");
     GPU.setUniformForProgram("render" ,"u_textureSize", [actualWidth, actualHeight], "2f");
+    GPU.setProgram("boundary");
+    GPU.setUniformForProgram("boundary" ,"u_textureSize", [width, height], "2f");
+    GPU.setUniformForProgram("boundary" ,"u_obstaclePosition", [obstaclePosition[0]/scale, obstaclePosition[1]/scale], "2f");
+    GPU.setUniformForProgram("boundary" ,"u_obstacleRad", obstacleRad/scale, "1f");
 
     var velocity = new Float32Array(width*height*4);
     for (var i=0;i<height;i++){
@@ -195,11 +214,15 @@ function resetWindow(){
     GPU.initTextureFromData("nextPressure", width, height, "FLOAT", new Float32Array(width*height*4), true);
     GPU.initFrameBufferForTexture("nextPressure", true);
 
+    var numCols = Math.floor(actualHeight/10);
+    if (numCols%2 == 1) numCols--;
+    var colHeight = actualHeight/numCols;
+
     var material = new Float32Array(actualWidth*actualHeight*4);
     for (var i=0;i<actualHeight;i++){
         for (var j=0;j<actualWidth;j++){
             var index = 4*(i*actualWidth+j);
-            if (j==0 && (Math.floor(i/10))%2) material[index] = 1.0;
+            if (j==0 && (Math.floor(i/colHeight))%2) material[index] = 1.0;
         }
     }
     GPU.initTextureFromData("material", actualWidth, actualHeight, "FLOAT", material, true);
@@ -207,8 +230,6 @@ function resetWindow(){
     GPU.initTextureFromData("nextMaterial", actualWidth, actualHeight, "FLOAT", material, true);
     GPU.initFrameBufferForTexture("nextMaterial", true);
 
-
-    obstaclePosition = [actualWidth/10, actualHeight/2];
     var obstacle = new Float32Array(actualWidth*actualHeight*4);
     for (var i=0;i<actualHeight;i++){
         for (var j=0;j<actualWidth;j++){
