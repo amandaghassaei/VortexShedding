@@ -216,12 +216,14 @@ function resetWindow(){
 
     var numCols = Math.floor(actualHeight/10);
     if (numCols%2 == 1) numCols--;
+    var numPx = actualHeight/numCols;
 
+    console.log(numCols);
     var material = new Float32Array(actualWidth*actualHeight*4);
     for (var i=0;i<actualHeight;i++){
         for (var j=0;j<actualWidth;j++){
             var index = 4*(i*actualWidth+j);
-            if (j==0 && Math.round(i/actualHeight*numCols)%2==0) material[index] = 1.0;
+            if (j==0 && Math.floor((i-2)/numPx)%2==0) material[index] = 1.0;
         }
     }
     GPU.initTextureFromData("material", actualWidth, actualHeight, "FLOAT", material, true);

@@ -60,7 +60,7 @@
                 return;
             }
             float mat1 = texture2D(u_material, fragCoord/u_textureSize).x;
-            vec3 color = vec3(250.0/255.0, 235.0/255.0, 215.0/255.0);
+            vec3 color = vec3(0.98, 0.93, 0.84);
             gl_FragColor = vec4(mat1*color, 1);
         }
     </script>
@@ -352,10 +352,11 @@
                 It exhibits a phenomenon called <a href="https://en.wikipedia.org/wiki/Vortex_shedding" target="_blank">vortex shedding</a>,
                 where vortices of alternating spin spontaneously emerge behind the obstacle.
                 To increase performance, I solved for the velocity vector field of the fluid at a lower resolution than I used to compute the distribution of material moving through the fluid (shown in black and white).
-                I used bilinear interpolation to smooth out artifacts caused by this speedup.
+                I used bilinear interpolation to smooth out most artifacts caused by this speedup - though you can still see some artifacts around the boundary of the obstacle.
                 I ignored the viscous diffusion term from the Navier-Stokes formula to encourage better vortex formation (the implicit advection solving I'm using creates enough diffusion on its own for this system).
                 <br/><br/>
-                Click and drag to apply a force to the fluid.
+                Click and drag to apply a force to the fluid:
+                <img style="width:100%" src="img2.png"/>
                 <br/><br/>
                 To learn more about the math involved, check out the following sources:<br/>
                 <a href="http://http.developer.nvidia.com/GPUGems/gpugems_ch38.html" target="_blank">Fast Fluid Dynamics Simulation on the GPU</a> - a very well written tutorial about programming the Navier-Stokes equations on a GPU.
