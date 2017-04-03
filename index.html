@@ -342,12 +342,12 @@
         <div class="modal-content">
             <div class="modal-body">
                 <b>Vortex Shedding Fluid Simulation</b><br/><br/>
-                This simulation solves the <a href="https://en.wikipedia.org/wiki/Navier%E2%80%93Stokes_equations" target="_blank">Navier-Stokes equations</a> for incompressible fluid flow past an obstacle.
-                At each step of the simulation, a discrete form of Navier-Stokes is solved in a GPU fragment shader.
-                This system exhibits a phenomenon called <a href="https://en.wikipedia.org/wiki/Vortex_shedding" target="_blank">vortex shedding</a>,
-                where vortices of alternating directions spontaneously emerge behind the obstacle.
-                To increase performance, I solved for the velocity of the fluid at a lower resolution than the position of material moving in the fluid (shown in black and white).
+                This simulation solves the <a href="https://en.wikipedia.org/wiki/Navier%E2%80%93Stokes_equations" target="_blank">Navier-Stokes equations</a> for incompressible fluid flow past an obstacle in a GPU fragment shader.
+                It exhibits a phenomenon called <a href="https://en.wikipedia.org/wiki/Vortex_shedding" target="_blank">vortex shedding</a>,
+                where vortices of alternating spin spontaneously emerge behind the obstacle.
+                To increase performance, I solved for the velocity vector field of the fluid at a lower resolution than I used to compute the distribution of material moving through the fluid (shown in black and white).
                 I used bilinear interpolation to smooth out any resulting artifacts from this speedup.
+                I ignored the viscous diffusion term from the Navier-Stokes formula to encourage better vortex formation (the implicit advection solving I'm using creates enough diffusion on its own for this system).
                 <br/><br/>
                 Click and drag to apply a force to the fluid.
                 <br/><br/>

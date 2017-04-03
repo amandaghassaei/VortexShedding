@@ -107,7 +107,7 @@ function render(){
         GPU.setProgram("force");
         if (mouseEnable){
             GPU.setUniformForProgram("force", "u_mouseEnable", 1.0, "1f");
-            GPU.setUniformForProgram("force", "u_mouseCoord", [mouseCoordinates[0]/scale, mouseCoordinates[1]/scale], "2f");
+            GPU.setUniformForProgram("force", "u_mouseCoord", [mouseCoordinates[0]*width/actualWidth, mouseCoordinates[1]*height/actualHeight], "2f");
             GPU.setUniformForProgram("force", "u_mouseDir", [2*(mouseCoordinates[0]-lastMouseCoordinates[0])/scale,
                 2*(mouseCoordinates[1]-lastMouseCoordinates[1])/scale], "2f");
         } else {
@@ -159,7 +159,7 @@ function resetWindow(){
     actualHeight = body.clientHeight;
 
     var maxDim = Math.max(actualHeight, actualWidth);
-    var scale = maxDim/300;
+    var scale = maxDim/200;
 
     width = Math.floor(actualWidth/scale);
     height = Math.floor(actualHeight/scale);
@@ -192,8 +192,8 @@ function resetWindow(){
     GPU.setUniformForProgram("render" ,"u_textureSize", [actualWidth, actualHeight], "2f");
     GPU.setProgram("boundary");
     GPU.setUniformForProgram("boundary" ,"u_textureSize", [width, height], "2f");
-    GPU.setUniformForProgram("boundary" ,"u_obstaclePosition", [obstaclePosition[0]/scale, obstaclePosition[1]/scale], "2f");
-    GPU.setUniformForProgram("boundary" ,"u_obstacleRad", obstacleRad/scale, "1f");
+    GPU.setUniformForProgram("boundary" ,"u_obstaclePosition", [obstaclePosition[0]*width/actualWidth, obstaclePosition[1]*height/actualHeight, "2f");
+    GPU.setUniformForProgram("boundary" ,"u_obstacleRad", obstacleRad*width/actualWidth, "1f");
 
     var velocity = new Float32Array(width*height*4);
     for (var i=0;i<height;i++){
