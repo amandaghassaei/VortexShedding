@@ -32,12 +32,12 @@
 
             vec2 dir = fragCoord - vec2(0.5, 0.5) - u_obstaclePosition;
             float dist = length(dir);
-            if (dist < u_obstacleRad-2.0){
+            if (dist < u_obstacleRad){
                 gl_FragColor = vec4(0);
                 return;
             }
 
-            if (dist < u_obstacleRad){
+            if (dist < u_obstacleRad+1.0){
                 gl_FragColor = u_scale*texture2D(u_texture, (fragCoord + dir/dist*2.0)/u_textureSize);
                 return;
             }
@@ -56,12 +56,12 @@
         void main() {
             vec2 fragCoord = gl_FragCoord.xy;
             if (texture2D(u_obstacle, fragCoord/u_textureSize).x == 1.0){
-                float color = 0.5;
                 gl_FragColor = vec4(0.925, 0, 0.55, 1);
                 return;
             }
             float mat1 = texture2D(u_material, fragCoord/u_textureSize).x;
-            gl_FragColor = vec4(mat1, mat1, mat1, 1);
+            vec3 color = vec3(250.0/255.0, 235.0/255.0, 215.0/255.0);
+            gl_FragColor = vec4(mat1*color, 1);
         }
     </script>
 
