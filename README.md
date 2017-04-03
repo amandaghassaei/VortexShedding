@@ -1,5 +1,5 @@
 # VortexShedding
-A realtime fluid flow simulation on the GPU
+A realtime fluid flow simulation on the GPU using WebGL
 
 Live demo at <a href="http://git.amandaghassaei.com/VortexShedding/" target="_blank">git.amandaghassaei.com/VortexShedding/</a>
 
