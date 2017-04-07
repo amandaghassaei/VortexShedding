@@ -34,9 +34,13 @@ function initGL() {
     body = document.getElementsByTagName("body")[0];
 
     canvas.onmousemove = onMouseMove;
+    canvas.ontouchmove = onTouchMove;
     canvas.onmousedown = onMouseDown;
+    canvas.ontouchstart = onMouseDown;
     canvas.onmouseup = onMouseUp;
+    canvas.ontouchend = onMouseUp;
     canvas.onmouseout = onMouseUp;
+    canvas.ontouchcancel = onMouseUp;
 
     window.onresize = onResize;
 
@@ -249,6 +253,12 @@ function resetWindow(){
 function onMouseMove(e){
     lastMouseCoordinates = mouseCoordinates;
     mouseCoordinates = [e.clientX, actualHeight-e.clientY];
+}
+function onTouchMove(e){
+    e.preventDefault();
+    var touch = e.touches[0];
+    lastMouseCoordinates = mouseCoordinates;
+    mouseCoordinates = [touch.pageX, actualHeight-touch.pageY];
 }
 
 function onMouseDown(){
