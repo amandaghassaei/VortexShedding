@@ -7,6 +7,7 @@ var scale = 3.5;
 
 var obstaclePosition = [0,0];
 var obstacleRad = 20;
+var movingObstacle = false;
 
 var lastMouseCoordinates =  [0,0];
 var mouseCoordinates =  [0,0];
@@ -76,7 +77,6 @@ function initGL() {
 
     GPU.createProgram("render", "2d-vertex-shader", "2d-render-shader");
     GPU.setUniformForProgram("render", "u_material", 0, "1i");
-    GPU.setUniformForProgram("render", "u_obstacle", 1, "1i");
 
     GPU.createProgram("boundary", "2d-vertex-shader", "boundaryConditionsShader");
     GPU.setUniformForProgram("boundary", "u_texture", 0, "1i");
@@ -94,6 +94,7 @@ function render(){
         GPU.setSize(width, height);
         GPU.step("advectVel", ["velocity", "velocity"], "nextVelocity");
         GPU.setProgram("boundary");
+        if (movingObstacle) GPU.setUniformForProgram("boundary" ,"u_obstaclePosition", [obstaclePosition[0]*width/actualWidth, obstaclePosition[1]*height/actualHeight], "2f");
         GPU.setUniformForProgram("boundary", "u_scale", -1, "1f");
         GPU.step("boundary", ["nextVelocity"], "velocity");
 
@@ -108,19 +109,16 @@ function render(){
         // }
 
         //apply force
-        GPU.setProgram("force");
         if (mouseEnable){
-            GPU.setUniformForProgram("force", "u_mouseEnable", 1.0, "1f");
+            GPU.setProgram("force");
             GPU.setUniformForProgram("force", "u_mouseCoord", [mouseCoordinates[0]*width/actualWidth, mouseCoordinates[1]*height/actualHeight], "2f");
             GPU.setUniformForProgram("force", "u_mouseDir", [2*(mouseCoordinates[0]-lastMouseCoordinates[0])/scale,
                 2*(mouseCoordinates[1]-lastMouseCoordinates[1])/scale], "2f");
-        } else {
-            GPU.setUniformForProgram("force", "u_mouseEnable", 0.0, "1f");
+            GPU.step("force", ["velocity"], "nextVelocity");
+             GPU.setProgram("boundary");
+            GPU.setUniformForProgram("boundary", "u_scale", -1, "1f");
+            GPU.step("boundary", ["nextVelocity"], "velocity");
         }
-        GPU.step("force", ["velocity"], "nextVelocity");
-        GPU.setProgram("boundary");
-        GPU.setUniformForProgram("boundary", "u_scale", -1, "1f");
-        GPU.step("boundary", ["nextVelocity"], "velocity");
 
         // compute pressure
         GPU.step("diverge", ["velocity"], "velocityDivergence");//calc velocity divergence
@@ -145,7 +143,11 @@ function render(){
         // move material
         GPU.setSize(actualWidth, actualHeight);
         GPU.step("advectMat", ["velocity", "material"], "nextMaterial");
-        GPU.step("render", ["nextMaterial", "obstacle"]);
+        if (movingObstacle) {
+            GPU.setProgram("render");
+            GPU.setUniformForProgram("render" ,"u_obstaclePosition", [obstaclePosition[0], obstaclePosition[1]], "2f");
+        }
+        GPU.step("render", ["nextMaterial"]);
         GPU.swapTextures("nextMaterial", "material");
 
     } else resetWindow();
@@ -193,7 +195,9 @@ function resetWindow(){
     GPU.setProgram("jacobi");
     GPU.setUniformForProgram("jacobi" ,"u_textureSize", [width, height], "2f");
     GPU.setProgram("render");
+    GPU.setUniformForProgram("render" ,"u_obstaclePosition", [obstaclePosition[0], obstaclePosition[1]], "2f");
     GPU.setUniformForProgram("render" ,"u_textureSize", [actualWidth, actualHeight], "2f");
+    GPU.setUniformForProgram("render" ,"u_obstacleRad", obstacleRad, "1f");
     GPU.setProgram("boundary");
     GPU.setUniformForProgram("boundary" ,"u_textureSize", [width, height], "2f");
     GPU.setUniformForProgram("boundary" ,"u_obstaclePosition", [obstaclePosition[0]*width/actualWidth, obstaclePosition[1]*height/actualHeight], "2f");
@@ -234,36 +238,38 @@ function resetWindow(){
     GPU.initTextureFromData("nextMaterial", actualWidth, actualHeight, "FLOAT", material, true);
     GPU.initFrameBufferForTexture("nextMaterial", true);
 
-    var obstacle = new Float32Array(actualWidth*actualHeight*4);
-    for (var i=0;i<actualHeight;i++){
-        for (var j=0;j<actualWidth;j++){
-            var index = 4*(i*actualWidth+j);
-            var vec = [obstaclePosition[0]-j, obstaclePosition[1]-i];
-            if (vec[0]*vec[0]+vec[1]*vec[1] < obstacleRad*obstacleRad){
-                obstacle[index] = 1;
-            }
-        }
-    }
-    GPU.initTextureFromData("obstacle", actualWidth, actualHeight, "FLOAT", obstacle, true);
-
     paused = false;
 }
 
 function onMouseMove(e){
     lastMouseCoordinates = mouseCoordinates;
     mouseCoordinates = [e.clientX, actualHeight-e.clientY];
+    updateObstaclePosition();
 }
 function onTouchMove(e){
     e.preventDefault();
     var touch = e.touches[0];
     lastMouseCoordinates = mouseCoordinates;
     mouseCoordinates = [touch.pageX, actualHeight-touch.pageY];
+    updateObstaclePosition();
+}
+
+function updateObstaclePosition(){
+    if (movingObstacle) obstaclePosition = mouseCoordinates;
 }
 
 function onMouseDown(){
-    mouseEnable = true;
+    var distToObstacle = [mouseCoordinates[0]-obstaclePosition[0], mouseCoordinates[1]-obstaclePosition[1]];
+    if (distToObstacle[0]*distToObstacle[0] + distToObstacle[1]*distToObstacle[1] < obstacleRad*obstacleRad){
+        movingObstacle = true;
+        mouseEnable = false;
+    } else {
+        mouseEnable = true;
+        movingObstacle = false;
+    }
 }
 
 function onMouseUp(){
+    movingObstacle = false;
     mouseEnable = false;
 }

@@ -61,15 +61,20 @@
         precision mediump float;
 
         uniform sampler2D u_material;
-        uniform sampler2D u_obstacle;
+        uniform vec2 u_obstaclePosition;
         uniform vec2 u_textureSize;
+        uniform float u_obstacleRad;
 
         void main() {
             vec2 fragCoord = gl_FragCoord.xy;
-            if (texture2D(u_obstacle, fragCoord/u_textureSize).x == 1.0){
+
+            vec2 dir = fragCoord - vec2(0.5, 0.5) - u_obstaclePosition;
+            float dist = length(dir);
+            if (dist < u_obstacleRad){
                 gl_FragColor = vec4(0.925, 0, 0.55, 1);
                 return;
             }
+
             float mat1 = texture2D(u_material, fragCoord/u_textureSize).x;
             vec3 color = vec3(0.98, 0.93, 0.84);
             gl_FragColor = vec4(mat1*color, 1);
@@ -158,7 +163,6 @@
 
         uniform vec2 u_mouseCoord;
         uniform vec2 u_mouseDir;
-        uniform float u_mouseEnable;
 
         uniform float u_reciprocalRadius;
 
@@ -170,10 +174,8 @@
 
             vec2 currentVelocity = texture2D(u_velocity, fragCoord/u_textureSize).xy;
 
-            if (u_mouseEnable == 1.0){
-                vec2 pxDist = fragCoord - u_mouseCoord;
-                currentVelocity += u_mouseDir*u_dt*exp(-(pxDist.x*pxDist.x+pxDist.y*pxDist.y)*u_reciprocalRadius);
-            }
+            vec2 pxDist = fragCoord - u_mouseCoord;
+            currentVelocity += u_mouseDir*u_dt*exp(-(pxDist.x*pxDist.x+pxDist.y*pxDist.y)*u_reciprocalRadius);
 
             gl_FragColor = vec4(currentVelocity, 0, 0);
         }
