@@ -222,7 +222,6 @@ function resetWindow(){
     if (numCols%2 == 1) numCols--;
     var numPx = actualHeight/numCols;
 
-    console.log(numCols);
     var material = new Float32Array(actualWidth*actualHeight*4);
     for (var i=0;i<actualHeight;i++){
         for (var j=0;j<actualWidth;j++){
