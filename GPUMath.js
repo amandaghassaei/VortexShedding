@@ -9,8 +9,35 @@ function initGPUMath(){
 
     var canvas = document.getElementById("glcanvas");
     var gl = canvas.getContext("webgl", {antialias:false}) || canvas.getContext("experimental-webgl", {antialias:false});
-    gl.getExtension('OES_texture_float');
+    var floatTextures = gl.getExtension("OES_texture_float");
+    if (!floatTextures) {
+       console.warn("floating point textures are not supported on your system");
+    }
     gl.disable(gl.DEPTH_TEST);
+
+    // check if we can render to floating point textures.
+    var tex = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, tex);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.FLOAT, null);
+
+    // some drivers have a bug that requires you turn off filtering before
+    // rendering to a texture.
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+    // make a framebuffer
+    var fb = gl.createFramebuffer();
+    gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
+
+    // attach the texture
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0,
+                            gl.TEXTURE_2D, tex, 0);
+
+    // check if we can render
+    var status = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
+    if (status != gl.FRAMEBUFFER_COMPLETE) {
+        console.warn("can't render to floating point textures");
+    }
 
     var maxTexturesInFragmentShader = gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS);
     console.log(maxTexturesInFragmentShader + " textures max");
