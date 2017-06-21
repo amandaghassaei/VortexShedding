@@ -147,7 +147,7 @@ function render(){
             GPU.setProgram("render");
             GPU.setUniformForProgram("render" ,"u_obstaclePosition", [obstaclePosition[0], obstaclePosition[1]], "2f");
         }
-        GPU.step("render", ["nextMaterial"]);
+        GPU.step("render", ["pressure"]);
         GPU.swapTextures("nextMaterial", "material");
 
     } else resetWindow();
