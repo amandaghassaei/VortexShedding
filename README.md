@@ -21,5 +21,6 @@ Though not WebGL specific, it was still very useful.<br/>
 <a href="http://jamie-wong.com/2016/08/05/webgl-fluid-simulation/" target="_blank">Fluid Simulation (with WebGL demo)</a> - this article has some nice, interactive graphics that helped me debug my code.<br/>
 <a href="http://www.dgp.toronto.edu/people/stam/reality/Research/pdf/ns.pdf" target="_blank">Stable Fluids</a> - a paper about stable numerical methods for evaluating Navier-Stokes on a discrete grid.<br/>
 <br/>
-Written by <a href="http://www.amandaghassaei.com/" target="_blank">Amanda Ghassaei</a> as a homework assingment for <a href="http://fab.cba.mit.edu/classes/MAS.864/" target="_blank">The Nature of Mathematical Modeling</a>, code on <a href="https://github.com/amandaghassaei/VortexShedding" target="_blank">Github</a>.
+Written by <a href="http://www.amandaghassaei.com/" target="_blank">Amanda Ghassaei</a> as a homework assignment for <a href="http://fab.cba.mit.edu/classes/MAS.864/" target="_blank">The Nature of Mathematical Modeling</a>, code on <a href="https://github.com/amandaghassaei/VortexShedding" target="_blank">Github</a>.
+If you like this, you might also check out my other <a href="http://git.amandaghassaei.com/FluidSimulation">Fluid Simulation app</a>.
                 

@@ -10,7 +10,9 @@ function initGPUMath(){
     var canvas = document.getElementById("glcanvas");
     var gl = canvas.getContext("webgl", {antialias:false}) || canvas.getContext("experimental-webgl", {antialias:false});
     var floatTextures = gl.getExtension("OES_texture_float");
+
     if (!floatTextures) {
+        $("#noSupportModal").modal("show");
        console.warn("floating point textures are not supported on your system");
     }
     gl.disable(gl.DEPTH_TEST);
