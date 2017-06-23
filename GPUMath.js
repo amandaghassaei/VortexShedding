@@ -11,9 +11,22 @@ function initGPUMath(){
     var gl = canvas.getContext("webgl", {antialias:false}) || canvas.getContext("experimental-webgl", {antialias:false});
     var floatTextures = gl.getExtension("OES_texture_float");
 
-    if (!floatTextures) {
+    function notSupported(){
+        var elm = '<div id="coverImg" ' +
+          'style="background: url(vortexshedding.gif) no-repeat center center fixed;' +
+            '-webkit-background-size: cover;' +
+            '-moz-background-size: cover;' +
+            '-o-background-size: cover;' +
+            'background-size: cover;">'+
+          '</div>';
+        $(elm).appendTo(body);
         $("#noSupportModal").modal("show");
        console.warn("floating point textures are not supported on your system");
+    }
+
+
+    if (!floatTextures) {
+        notSupported();
     }
     gl.disable(gl.DEPTH_TEST);
 
@@ -73,8 +86,7 @@ function initGPUMath(){
 
         var check = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
         if(check != gl.FRAMEBUFFER_COMPLETE){
-            $("#noSupportModal").modal("show");
-            console.warn("rendering to floating point textures are not supported on your system");
+            notSupported();
         }
 
         this.frameBuffers[textureName] = framebuffer;
