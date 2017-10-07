@@ -3,7 +3,7 @@ A realtime fluid flow simulation on the GPU using WebGL
 
 <img src="vortexshedding.gif"/>
 
-Live demo at <a href="http://git.amandaghassaei.com/VortexShedding/" target="_blank">git.amandaghassaei.com/VortexShedding/</a>
+Live demo at <a href="http://apps.amandaghassaei.com/VortexShedding/" target="_blank">apps.amandaghassaei.com/VortexShedding/</a>
 
 This simulation solves the <a href="https://en.wikipedia.org/wiki/Navier%E2%80%93Stokes_equations" target="_blank">Navier-Stokes equations</a> for incompressible fluid flow past an obstacle in a GPU fragment shader.
 It exhibits a phenomenon called <a href="https://en.wikipedia.org/wiki/Vortex_shedding" target="_blank">vortex shedding</a>,
@@ -23,5 +23,5 @@ Though not WebGL specific, it was still very useful.<br/>
 <a href="http://www.dgp.toronto.edu/people/stam/reality/Research/pdf/ns.pdf" target="_blank">Stable Fluids</a> - a paper about stable numerical methods for evaluating Navier-Stokes on a discrete grid.<br/>
 <br/>
 Written by <a href="http://www.amandaghassaei.com/" target="_blank">Amanda Ghassaei</a> as a homework assignment for <a href="http://fab.cba.mit.edu/classes/MAS.864/" target="_blank">The Nature of Mathematical Modeling</a>, code on <a href="https://github.com/amandaghassaei/VortexShedding" target="_blank">Github</a>.
-If you like this, you might also check out my other <a href="http://git.amandaghassaei.com/FluidSimulation">Fluid Simulation app</a>.
+If you like this, you might also check out my other <a href="http://apps.amandaghassaei.com/FluidSimulation">Fluid Simulation app</a>.
                 
