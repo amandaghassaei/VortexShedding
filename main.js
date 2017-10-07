@@ -22,6 +22,56 @@ var rho = 1;//density
 
 var GPU;
 
+var toHalf = (function() {
+
+  var floatView = new Float32Array(1);
+  var int32View = new Int32Array(floatView.buffer);
+
+  /* This method is faster than the OpenEXR implementation (very often
+   * used, eg. in Ogre), with the additional benefit of rounding, inspired
+   * by James Tursa?s half-precision code. */
+  return function toHalf(val) {
+
+        floatView[0] = val;
+        var x = int32View[0];
+
+        var bits = (x >> 16) & 0x8000; /* Get the sign */
+        var m = (x >> 12) & 0x07ff; /* Keep one extra bit for rounding */
+        var e = (x >> 23) & 0xff; /* Using int is faster here */
+
+        /* If zero, or denormal, or exponent underflows too much for a denormal
+         * half, return signed zero. */
+        if (e < 103) {
+          return bits;
+        }
+
+        /* If NaN, return NaN. If Inf or exponent overflow, return Inf. */
+        if (e > 142) {
+          bits |= 0x7c00;
+          /* If exponent was 0xff and one mantissa bit was set, it means NaN,
+               * not Inf, so make sure we set one mantissa bit too. */
+          bits |= ((e == 255) ? 0 : 1) && (x & 0x007fffff);
+          return bits;
+        }
+
+        /* If exponent underflows but not too much, return a denormal */
+        if (e < 113) {
+          m |= 0x0800;
+          /* Extra rounding may overflow and set mantissa to 0 and exponent
+           * to 1, which is OK. */
+          bits |= (m >> (114 - e)) + ((m >> (113 - e)) & 1);
+          return bits;
+        }
+
+        bits |= ((e - 112) << 10) | (m >> 1);
+        /* Extra rounding. An overflow will set mantissa to 0 and increment
+         * the exponent, which is OK. */
+        bits += m & 1;
+        return bits;
+      };
+
+}());
+
 window.onload = initGL;
 
 function initGL() {
@@ -203,39 +253,39 @@ function resetWindow(){
     GPU.setUniformForProgram("boundary" ,"u_obstaclePosition", [obstaclePosition[0]*width/actualWidth, obstaclePosition[1]*height/actualHeight], "2f");
     GPU.setUniformForProgram("boundary" ,"u_obstacleRad", obstacleRad*width/actualWidth, "1f");
 
-    var velocity = new Float32Array(width*height*4);
+    var velocity = new Uint16Array(width*height*4);
     for (var i=0;i<height;i++){
         for (var j=0;j<width;j++){
             var index = 4*(i*width+j);
-            velocity[index] = 1;
+            velocity[index] = toHalf(1);
         }
     }
-    GPU.initTextureFromData("velocity", width, height, "FLOAT", velocity, true);
+    GPU.initTextureFromData("velocity", width, height, "HALF_FLOAT", velocity, true);
     GPU.initFrameBufferForTexture("velocity", true);
-    GPU.initTextureFromData("nextVelocity", width, height, "FLOAT", velocity, true);
+    GPU.initTextureFromData("nextVelocity", width, height, "HALF_FLOAT", velocity, true);
     GPU.initFrameBufferForTexture("nextVelocity", true);
 
-    GPU.initTextureFromData("velocityDivergence", width, height, "FLOAT", new Float32Array(width*height*4), true);
+    GPU.initTextureFromData("velocityDivergence", width, height, "HALF_FLOAT", new Uint16Array(width*height*4), true);
     GPU.initFrameBufferForTexture("velocityDivergence", true);
-    GPU.initTextureFromData("pressure", width, height, "FLOAT", new Float32Array(width*height*4), true);
+    GPU.initTextureFromData("pressure", width, height, "HALF_FLOAT", new Uint16Array(width*height*4), true);
     GPU.initFrameBufferForTexture("pressure", true);
-    GPU.initTextureFromData("nextPressure", width, height, "FLOAT", new Float32Array(width*height*4), true);
+    GPU.initTextureFromData("nextPressure", width, height, "HALF_FLOAT", new Uint16Array(width*height*4), true);
     GPU.initFrameBufferForTexture("nextPressure", true);
 
     var numCols = Math.floor(actualHeight/10);
     if (numCols%2 == 1) numCols--;
     var numPx = actualHeight/numCols;
 
-    var material = new Float32Array(actualWidth*actualHeight*4);
+    var material = new Uint16Array(actualWidth*actualHeight*4);
     for (var i=0;i<actualHeight;i++){
         for (var j=0;j<actualWidth;j++){
             var index = 4*(i*actualWidth+j);
-            if (j==0 && Math.floor((i-2)/numPx)%2==0) material[index] = 1.0;
+            if (j==0 && Math.floor((i-2)/numPx)%2==0) material[index] = toHalf(1.0);
         }
     }
-    GPU.initTextureFromData("material", actualWidth, actualHeight, "FLOAT", material, true);
+    GPU.initTextureFromData("material", actualWidth, actualHeight, "HALF_FLOAT", material, true);
     GPU.initFrameBufferForTexture("material", true);
-    GPU.initTextureFromData("nextMaterial", actualWidth, actualHeight, "FLOAT", material, true);
+    GPU.initTextureFromData("nextMaterial", actualWidth, actualHeight, "HALF_FLOAT", material, true);
     GPU.initFrameBufferForTexture("nextMaterial", true);
 
     paused = false;
@@ -273,3 +323,4 @@ function onMouseUp(){
     movingObstacle = false;
     mouseEnable = false;
 }
+

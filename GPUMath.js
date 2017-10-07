@@ -9,7 +9,7 @@ function initGPUMath(){
 
     var canvas = document.getElementById("glcanvas");
     var gl = canvas.getContext("webgl", {antialias:false}) || canvas.getContext("experimental-webgl", {antialias:false});
-    var floatTextures = gl.getExtension("OES_texture_float");
+    var ext = gl.getExtension("OES_texture_half_float") || gl.getExtension("EXT_color_buffer_half_float");
 
     function notSupported(){
         var elm = '<div id="coverImg" ' +
@@ -25,7 +25,7 @@ function initGPUMath(){
     }
 
 
-    if (!floatTextures) {
+    if (!ext) {
         notSupported();
     }
     gl.disable(gl.DEPTH_TEST);
@@ -60,7 +60,10 @@ function initGPUMath(){
             console.warn("already a texture with the name " + name);
             return;
         }
-        texture = glBoilerplate.makeTexture(gl, width, height, gl[typeName], data);
+        var type;
+        if (typeName == "HALF_FLOAT") type = ext.HALF_FLOAT_OES;
+        else type = gl[typeName];
+        texture = glBoilerplate.makeTexture(gl, width, height, type, data);
         this.textures[name] = texture;
     };
 
