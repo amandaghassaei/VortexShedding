@@ -131,6 +131,8 @@ function initGL() {
     GPU.createProgram("boundary", "2d-vertex-shader", "boundaryConditionsShader");
     GPU.setUniformForProgram("boundary", "u_texture", 0, "1i");
 
+    GPU.createProgram("resetVelocity", "2d-vertex-shader", "resetVelocityShader");
+
     resetWindow();
 
     render();
@@ -253,17 +255,20 @@ function resetWindow(){
     GPU.setUniformForProgram("boundary" ,"u_obstaclePosition", [obstaclePosition[0]*width/actualWidth, obstaclePosition[1]*height/actualHeight], "2f");
     GPU.setUniformForProgram("boundary" ,"u_obstacleRad", obstacleRad*width/actualWidth, "1f");
 
-    var velocity = new Uint16Array(width*height*4);
-    for (var i=0;i<height;i++){
-        for (var j=0;j<width;j++){
-            var index = 4*(i*width+j);
-            velocity[index] = toHalf(1);
-        }
-    }
-    GPU.initTextureFromData("velocity", width, height, "HALF_FLOAT", velocity, true);
+    // var velocity = new Uint16Array(width*height*4);
+    // for (var i=0;i<height;i++){
+    //     for (var j=0;j<width;j++){
+    //         var index = 4*(i*width+j);
+    //         velocity[index] = toHalf(1);
+    //     }
+    // }
+    GPU.initTextureFromData("velocity", width, height, "HALF_FLOAT", null, true);//velocity
     GPU.initFrameBufferForTexture("velocity", true);
-    GPU.initTextureFromData("nextVelocity", width, height, "HALF_FLOAT", velocity, true);
+    GPU.initTextureFromData("nextVelocity", width, height, "HALF_FLOAT", null, true);//velocity
     GPU.initFrameBufferForTexture("nextVelocity", true);
+
+    GPU.step("resetVelocity", [], "velocity");
+    GPU.step("resetVelocity", [], "nextVelocity");
 
     GPU.initTextureFromData("velocityDivergence", width, height, "HALF_FLOAT", new Uint16Array(width*height*4), true);
     GPU.initFrameBufferForTexture("velocityDivergence", true);
@@ -272,20 +277,20 @@ function resetWindow(){
     GPU.initTextureFromData("nextPressure", width, height, "HALF_FLOAT", new Uint16Array(width*height*4), true);
     GPU.initFrameBufferForTexture("nextPressure", true);
 
-    var numCols = Math.floor(actualHeight/10);
-    if (numCols%2 == 1) numCols--;
-    var numPx = actualHeight/numCols;
+    // var numCols = Math.floor(actualHeight/10);
+    // if (numCols%2 == 1) numCols--;
+    // var numPx = actualHeight/numCols;
 
-    var material = new Uint16Array(actualWidth*actualHeight*4);
-    for (var i=0;i<actualHeight;i++){
-        for (var j=0;j<actualWidth;j++){
-            var index = 4*(i*actualWidth+j);
-            if (j==0 && Math.floor((i-2)/numPx)%2==0) material[index] = toHalf(1.0);
-        }
-    }
-    GPU.initTextureFromData("material", actualWidth, actualHeight, "HALF_FLOAT", material, true);
+    // var material = new Uint16Array(actualWidth*actualHeight*4);
+    // for (var i=0;i<actualHeight;i++){
+    //     for (var j=0;j<actualWidth;j++){
+    //         var index = 4*(i*actualWidth+j);
+    //         if (j==0 && Math.floor((i-2)/numPx)%2==0) material[index] = toHalf(1.0);
+    //     }
+    // }
+    GPU.initTextureFromData("material", actualWidth, actualHeight, "HALF_FLOAT", null, true);//material
     GPU.initFrameBufferForTexture("material", true);
-    GPU.initTextureFromData("nextMaterial", actualWidth, actualHeight, "HALF_FLOAT", material, true);
+    GPU.initTextureFromData("nextMaterial", actualWidth, actualHeight, "HALF_FLOAT", null, true);//material
     GPU.initFrameBufferForTexture("nextMaterial", true);
 
     paused = false;

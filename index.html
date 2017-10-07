@@ -30,6 +30,14 @@
         }
     </script>
 
+    <script id="resetVelocityShader" type="x-shader/x-fragment">
+        precision mediump float;
+
+        void main() {
+            gl_FragColor = vec4(1.0, 0.0, 0.0, 0.0);
+        }
+    </script>
+
     <script id="boundaryConditionsShader" type="x-shader/x-fragment">
         precision mediump float;
 
@@ -259,7 +267,15 @@
 
             //implicitly solve advection
 
-            if (fragCoord.x < 1.0 || length(currentVelocity) == 0.0) {//boundary or no velocity
+            if (fragCoord.x < 1.0){//boundary
+                float numCols = floor(u_textureSize.y/10.0);
+                if (mod(numCols, 2.0) == 1.0) numCols--;
+                float numPx = u_textureSize.y/numCols;
+                if (floor(mod((fragCoord.y-2.0)/numPx, 2.0)) == 0.0) gl_FragColor = vec4(1, 0, 0, 0);
+                else gl_FragColor = vec4(0, 0, 0, 0);
+                return;
+            }
+            if (length(currentVelocity) == 0.0) {//no velocity
                 gl_FragColor = vec4(texture2D(u_material, fragCoord/u_textureSize).xy, 0, 0);
                 return;
             }

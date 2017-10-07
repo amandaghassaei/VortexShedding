@@ -63,7 +63,7 @@ function initGPUMath(){
         var type;
         if (typeName == "HALF_FLOAT") type = ext.HALF_FLOAT_OES;
         else type = gl[typeName];
-        texture = glBoilerplate.makeTexture(gl, width, height, type, data);
+        texture = glBoilerplate.makeTexture(gl, width, height, type, null);
         this.textures[name] = texture;
     };
 
