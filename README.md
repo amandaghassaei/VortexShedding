@@ -13,8 +13,8 @@ I used bilinear interpolation to smooth out most artifacts caused by this speedu
 I ignored the viscous diffusion term from the Navier-Stokes formula to encourage better vortex formation (the implicit advection solving I'm using creates enough diffusion on its own for this system).
 <br/><br/>
 Click and drag to apply a force to the fluid:
-<img style="width:100%" src="img2.png"/>
-<img style="width:100%" src="img1.png"/>
+<img style="width:100%" src="img2.jpg"/>
+<img style="width:100%" src="img1.jpg"/>
 <br/><br/>
 To learn more about the math involved, check out the following sources:<br/>
 <a href="http://developer.download.nvidia.com/books/HTML/gpugems/gpugems_ch38.html" target="_blank">Fast Fluid Dynamics Simulation on the GPU</a> - a very well written tutorial about programming the Navier-Stokes equations on a GPU.
