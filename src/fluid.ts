@@ -1,5 +1,5 @@
 import { canvas, glcompute } from './gl';
-import { DT, PRESSURE_CALC_ALPHA, PRESSURE_CALC_BETA } from './constants';
+import { DT, JET_HEIGHT_PX, PRESSURE_CALC_ALPHA, PRESSURE_CALC_BETA } from './constants';
 const materialAdvectionSource = require('./kernels/MaterialAdvectionShader.glsl');
 const advectionSource = require('./kernels/AdvectionShader.glsl');
 const divergence2DSource = require('./kernels/Divergence2DShader.glsl');
@@ -8,7 +8,6 @@ const gradientSubtractionSource = require('./kernels/GradientSubtractionShader.g
 const colorRenderSource = require('./kernels/ColorShader.glsl');
 const boundaryMaterialSource = require('./kernels/BoundaryMaterialShader.glsl');
 const initVelocitySource = require('./kernels/InitVelocityShader.glsl');
-const initThicknessSource = require('./kernels/InitThicknessShader.glsl');
 
 
 let SCALE_FACTOR = calcScaleFactor(canvas.clientWidth, canvas.clientHeight);
@@ -26,6 +25,11 @@ const materialAdvection = glcompute.initProgram('materialAdvection', materialAdv
 	{
 		name: 'u_dt',
 		value: DT,
+		dataType: 'FLOAT',
+	},
+	{
+		name: 'u_advectionFactor',
+		value: 0.1,
 		dataType: 'FLOAT',
 	},
 	{
@@ -125,13 +129,12 @@ const colorRender = glcompute.initProgram('colorRender', colorRenderSource, [
 const boundaryMaterial = glcompute.initProgram('boundaryMaterial', boundaryMaterialSource, [
 	{
 		name: 'u_jetHeightPx',
-		value: 10,
+		value: JET_HEIGHT_PX,
 		dataType: 'FLOAT',
 	}
 ]);
 // const boundaryVelocity = glcompute.initProgram('boundaryMaterial', boundaryMaterialSource, []);
 const initVelocity = glcompute.initProgram('initVelocity', initVelocitySource);
-const initThickness = glcompute.initProgram('initThickness', initThicknessSource);
 
 // Init state.
 const width = canvas.clientWidth;
@@ -189,17 +192,9 @@ export function stepFluid() {
 	glcompute.stepBoundary(initVelocity, [], velocityState, { singleEdge: 'LEFT' });
 	// Advect the velocity vector field.
 	glcompute.step(advection, [velocityState, velocityState], velocityState);
-	// // Diffuse the velocity vector field (optional).
-	// jacobi.setUniform('u_alpha', 0.5, 'FLOAT');
-	// jacobi.setUniform('u_beta', 1/4.5, 'FLOAT');
-	// for (let i = 0; i < 1; i++) {
-	// 	glcompute.step(jacobi, [velocityState, velocityState], velocityState);
-	// }
 	// Compute divergence of advected velocity field.
 	glcompute.step(divergence2D, [velocityState], divergenceState);
 	// Compute the pressure gradient of the advected velocity vector field (using jacobi iterations).
-	jacobi.setUniform('u_alpha', PRESSURE_CALC_ALPHA, 'FLOAT');
-	jacobi.setUniform('u_beta', PRESSURE_CALC_BETA, 'FLOAT');
 	for (let i = 0; i < 20; i++) {
 		glcompute.step(jacobi, [pressureState, divergenceState], pressureState);
 	}

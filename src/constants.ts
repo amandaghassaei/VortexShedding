@@ -10,3 +10,4 @@ export const MAX_NUM_PARTICLES = 130000;
 export const PARTICLE_LIFETIME = 1000;
 export const TRAIL_LIFETIME = 100;
 export const NUM_RENDER_STEPS = 3;
+export const JET_HEIGHT_PX = 10;
