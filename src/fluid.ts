@@ -20,6 +20,8 @@ function calcScaleFactor(width: number, height: number) {
 	return Math.ceil(largestDim / 150);
 }
 
+let advectionFactor = 0;// This is a noisy value that will change how material advection is scaled for diff color channels.
+
 // Init programs.
 const materialAdvection = glcompute.initProgram('materialAdvection', materialAdvectionSource, [
 	{
@@ -29,7 +31,7 @@ const materialAdvection = glcompute.initProgram('materialAdvection', materialAdv
 	},
 	{
 		name: 'u_advectionFactor',
-		value: 0.1,
+		value: advectionFactor,
 		dataType: 'FLOAT',
 	},
 	{
@@ -204,6 +206,9 @@ export function stepFluid() {
 	// Update material boundary conditions.
 	glcompute.stepBoundary(boundaryMaterial, [], materialState, { singleEdge: 'LEFT' });
 	// Advect material.
+	const diff = Math.sign(Math.random() - 0.5) * 0.002;
+	if (Math.abs(advectionFactor + diff) < 0.1) advectionFactor += diff;
+	materialAdvection.setUniform('u_advectionFactor', advectionFactor, 'FLOAT');
 	glcompute.step(materialAdvection, [materialState, velocityState], materialState);
 	// Render.
 	glcompute.step(colorRender, [materialState]);
