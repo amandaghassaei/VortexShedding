@@ -8,7 +8,8 @@ const gradientSubtractionSource = require('./kernels/GradientSubtractionShader.g
 const colorRenderSource = require('./kernels/ColorShader.glsl');
 const boundaryMaterialSource = require('./kernels/BoundaryMaterialShader.glsl');
 const initVelocitySource = require('./kernels/InitVelocityShader.glsl');
-const updateThicknessSource = require('./kernels/UpdateThicknessShader.glsl');
+const initThicknessSource = require('./kernels/InitThicknessShader.glsl');
+
 
 let SCALE_FACTOR = calcScaleFactor(canvas.clientWidth, canvas.clientHeight);
 
@@ -112,23 +113,6 @@ const gradientSubtraction = glcompute.initProgram('gradientSubtraction', gradien
 		dataType: 'INT',
 	},
 ]);
-const updateThickness = glcompute.initProgram('updateThickness', updateThicknessSource, [
-	{
-		name: 'u_dt',
-		value: DT,
-		dataType: 'FLOAT',
-	},
-	{
-		name: 'u_thickness',
-		value: 0,
-		dataType: 'INT',
-	},
-	{
-		name: 'u_pressure',
-		value: 1,
-		dataType: 'INT',
-	},
-]);
 
 const colorRender = glcompute.initProgram('colorRender', colorRenderSource, [
 	{
@@ -146,9 +130,8 @@ const boundaryMaterial = glcompute.initProgram('boundaryMaterial', boundaryMater
 	}
 ]);
 // const boundaryVelocity = glcompute.initProgram('boundaryMaterial', boundaryMaterialSource, []);
-const initVelocity = glcompute.initProgram('initVelocity', initVelocitySource, [
-]);
-
+const initVelocity = glcompute.initProgram('initVelocity', initVelocitySource);
+const initThickness = glcompute.initProgram('initThickness', initThicknessSource);
 
 // Init state.
 const width = canvas.clientWidth;
@@ -185,14 +168,7 @@ const materialState = glcompute.initDataLayer('material',
 	wrapS: 'CLAMP_TO_EDGE',
 	wrapT: 'REPEAT',
 }, true, 2);
-const thicknessState = glcompute.initDataLayer('thickness',
-{
-	dimensions: [width, height],
-	type: 'float16',
-	numComponents: 2,
-	wrapS: 'CLAMP_TO_EDGE',
-	wrapT: 'REPEAT',
-}, true, 2);
+
 
 export function fluidOnResize(width: number, height: number) {
 	// Re-init textures at new size.
@@ -201,7 +177,6 @@ export function fluidOnResize(width: number, height: number) {
 	divergenceState.resize([Math.ceil(width / SCALE_FACTOR), Math.ceil(height / SCALE_FACTOR)]);
 	pressureState.resize([Math.ceil(width / SCALE_FACTOR), Math.ceil(height / SCALE_FACTOR)]);
 	materialState.resize([width, height]);
-	thicknessState.resize([width, height])
 	divergence2D.setUniform('u_pxSize', [SCALE_FACTOR / width, SCALE_FACTOR  / height], 'FLOAT');
 	jacobi.setUniform('u_pxSize', [SCALE_FACTOR / width, SCALE_FACTOR / height], 'FLOAT');
 	gradientSubtraction.setUniform('u_pxSize', [SCALE_FACTOR / width, SCALE_FACTOR / height], 'FLOAT');
@@ -230,8 +205,6 @@ export function stepFluid() {
 	}
 	// Subtract the pressure gradient from velocity to obtain a velocity vector field with zero divergence.
 	glcompute.step(gradientSubtraction, [pressureState, velocityState], velocityState);
-	// // Update thickness model of film.
-	// glcompute.step(updateThickness, [thicknessState, pressureState], thicknessState);
 
 	// Update material boundary conditions.
 	glcompute.stepBoundary(boundaryMaterial, [], materialState, { singleEdge: 'LEFT' });
