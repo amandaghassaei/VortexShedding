@@ -9,15 +9,10 @@ const colorRenderSource = require('./kernels/ColorShader.glsl');
 const boundaryMaterialSource = require('./kernels/BoundaryMaterialShader.glsl');
 const initVelocitySource = require('./kernels/InitVelocityShader.glsl');
 
-
 let SCALE_FACTOR = calcScaleFactor(canvas.clientWidth, canvas.clientHeight);
 
 function calcScaleFactor(width: number, height: number) {
-	const largestDim = Math.max(width, height);
-	if (largestDim <= 750) {
-		return 1;
-	}
-	return Math.ceil(largestDim / 150);
+	return 2;
 }
 
 let advectionFactor = 0;// This is a noisy value that will change how material advection is scaled for diff color channels.
@@ -186,6 +181,7 @@ export function fluidOnResize(width: number, height: number) {
 	jacobi.setUniform('u_pxSize', [SCALE_FACTOR / width, SCALE_FACTOR / height], 'FLOAT');
 	gradientSubtraction.setUniform('u_pxSize', [SCALE_FACTOR / width, SCALE_FACTOR / height], 'FLOAT');
 	glcompute.onResize(canvas);
+	glcompute.step(boundaryMaterial, [], materialState);
 	glcompute.step(initVelocity, [], velocityState);
 }
 
@@ -206,8 +202,8 @@ export function stepFluid() {
 	// Update material boundary conditions.
 	glcompute.stepBoundary(boundaryMaterial, [], materialState, { singleEdge: 'LEFT' });
 	// Advect material.
-	const diff = Math.sign(Math.random() - 0.5) * 0.002;
-	if (Math.abs(advectionFactor + diff) < 0.1) advectionFactor += diff;
+	// Update random advection factor function, biased toward zero.
+	advectionFactor += Math.sign(Math.random() - 0.5 - advectionFactor) * 0.003;
 	materialAdvection.setUniform('u_advectionFactor', advectionFactor, 'FLOAT');
 	glcompute.step(materialAdvection, [materialState, velocityState], materialState);
 	// Render.

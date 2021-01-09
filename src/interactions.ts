@@ -1,7 +1,5 @@
 import { glcompute, canvas } from './gl';
 import {
-	MAX_TOUCH_FORCE_RADIUS_PX,
-	MIN_TOUCH_FORCE_RADIUS_PX,
 	TOUCH_FORCE_RADIUS,
 	TOUCH_FORCE_SCALE,
 } from './constants';
@@ -11,10 +9,6 @@ import {
 const forceInteractionSource = require('./kernels/ForceInteractionShader.glsl');
 
 // Set up interactions.
-
-function calcTouchRadius(width: number, height: number) {
-	return Math.max(Math.min(TOUCH_FORCE_RADIUS * Math.max(width, height), MAX_TOUCH_FORCE_RADIUS_PX), MIN_TOUCH_FORCE_RADIUS_PX);
-}
 
 // Set up force interaction program.
 const forceInteraction = glcompute.initProgram('forceInteraction', forceInteractionSource, [
@@ -142,7 +136,7 @@ export function stepInteraction() {
 		glcompute.stepCircle(
 			forceInteraction,
 			[current[0], canvas.clientHeight - current[1]],
-			calcTouchRadius(canvas.clientWidth, canvas.clientHeight),
+			TOUCH_FORCE_RADIUS,
 			[velocityState],
 			velocityState,
 		);
